@@ -363,6 +363,11 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="../User/manage_contact.php">
+            <i class="fas fa-address-book"></i> Manage Contact
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="../Room/manage_room.php">
             <i class="fas fa-hotel"></i> Manage room
           </a>

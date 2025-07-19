@@ -48,17 +48,6 @@ $categories = [
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/include/Header.php'; ?>
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/include/slider.php'; ?>
 <div class="container">
-    <!-- Add user profile icon with correct name -->
-    <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:15px;">
-        <div class="user-info" style="display:flex;align-items:center;gap:10px;">
-            <div class="user-icon" style="width:40px;height:40px;background:#4361ee;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="user-name" style="font-weight:500;color:#2c3e50;">
-                <?= htmlspecialchars($_SESSION['name'] ?? 'Guest') ?>
-            </div>
-        </div>
-    </div>
     <div class="menu-wrapper">
         <div class="menu-container" id="menuScroll">
             <div class="menu-item">

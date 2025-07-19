@@ -37,29 +37,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_room'])) {
     if (!in_array($method, $allowed_methods, true)) $method = 'Phone';
 
     if ($booking) {
-        $status = ($method === 'Phone') ? 'Pending' : 'Paid';
-        $sql = "INSERT INTO booking_payments (payment_id, booking_id, user_id, amount, method, status, payment_date)
-                VALUES (booking_payments_seq.NEXTVAL, :p_bid, :p_uid, :amt, :method, :status, SYSDATE)
-                RETURNING payment_id INTO :new_payment_id";
-        $stmt = oci_parse($connection, $sql);
-        oci_bind_by_name($stmt, ':p_bid', $booking_id);
-        oci_bind_by_name($stmt, ':p_uid', $user_id);
-        oci_bind_by_name($stmt, ':amt', $amount);
-        oci_bind_by_name($stmt, ':method', $method);
-        oci_bind_by_name($stmt, ':status', $status);
-        $new_payment_id = null;
-        oci_bind_by_name($stmt, ':new_payment_id', $new_payment_id, 32);
-        if (oci_execute($stmt)) {
-            // Update guest record with payment_id
-            $sql_guest_update = "UPDATE guests SET payment_id = :pid WHERE booking_id = :bid";
-            $stmt_guest_update = oci_parse($connection, $sql_guest_update);
-            oci_bind_by_name($stmt_guest_update, ':pid', $new_payment_id);
-            oci_bind_by_name($stmt_guest_update, ':bid', $booking_id);
-            oci_execute($stmt_guest_update);
-            $success = true;
+        // Only store payment if successful
+        $payment_success = false;
+        if ($method === 'Stripe' || $method === 'PayPal' || $method === 'Cash') {
+            $payment_success = true;
         } else {
-            $e = oci_error($stmt);
-            $error = 'Payment failed: ' . htmlspecialchars($e['message']);
+            // Phone payment is not considered paid until confirmed
+            $payment_success = false;
+        }
+
+        if ($payment_success) {
+            $status = 'Paid';
+            $sql = "INSERT INTO booking_payments (payment_id, booking_id, user_id, amount, method, status, payment_date)
+                    VALUES (booking_payments_seq.NEXTVAL, :p_bid, :p_uid, :amt, :method, :status, SYSDATE)
+                    RETURNING payment_id INTO :new_payment_id";
+            $stmt = oci_parse($connection, $sql);
+            oci_bind_by_name($stmt, ':p_bid', $booking_id);
+            oci_bind_by_name($stmt, ':p_uid', $user_id);
+            oci_bind_by_name($stmt, ':amt', $amount);
+            oci_bind_by_name($stmt, ':method', $method);
+            oci_bind_by_name($stmt, ':status', $status);
+            $new_payment_id = null;
+            oci_bind_by_name($stmt, ':new_payment_id', $new_payment_id, 32);
+            if (oci_execute($stmt)) {
+                // Update guest record with payment_id
+                $sql_guest_update = "UPDATE guests SET payment_id = :pid WHERE booking_id = :bid";
+                $stmt_guest_update = oci_parse($connection, $sql_guest_update);
+                oci_bind_by_name($stmt_guest_update, ':pid', $new_payment_id);
+                oci_bind_by_name($stmt_guest_update, ':bid', $booking_id);
+                oci_execute($stmt_guest_update);
+                $success = true;
+            } else {
+                $e = oci_error($stmt);
+                $error = 'Payment failed: ' . htmlspecialchars($e['message']);
+            }
+        } else {
+            $error = "Payment not completed. Your booking payment was not stored.";
         }
     } else {
         $error = "Invalid booking.";

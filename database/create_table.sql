@@ -162,3 +162,16 @@ create table system_logs (
 );
 
 create sequence system_logs_seq start with 1 increment by 1;
+
+drop table contact cascade constraints;
+create table contact (
+   id         number primary key,
+   name       varchar2(255) not null,
+   email      varchar2(255) not null,
+   message    clob not null,
+   phone      varchar2(20),
+   status     varchar2(20) default 'New', -- New/Read/Resolved
+   created_at date default sysdate
+);
+
+create sequence contact_seq start with 1 increment by 1;

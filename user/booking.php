@@ -116,7 +116,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
 
 // Fetch user's bookings
 $bookings = [];
-$sql = "SELECT b.*, r.room_name, r.price_per_night, r.image_url FROM bookings b JOIN rooms r ON b.room_id = r.room_id WHERE b.user_id = :p_uid ORDER BY b.booking_id DESC";
+$sql = "SELECT b.*, r.room_name, r.price_per_night, r.image_url, u.name AS user_name
+        FROM bookings b
+        JOIN rooms r ON b.room_id = r.room_id
+        JOIN users u ON b.user_id = u.user_id
+        WHERE b.user_id = :p_uid
+        ORDER BY b.booking_id DESC";
 $stmt = oci_parse($connection, $sql);
 oci_bind_by_name($stmt, ':p_uid', $user_id);
 oci_execute($stmt);
@@ -510,7 +515,6 @@ while ($row = oci_fetch_assoc($stmt)) {
                 </div>
             <?php endif; ?>
         </div>
-
         <div class="footer">
             <p>RoyalNest Hotel &copy; 2023 | Luxury Redefined</p>
             <p>Contact: reservations@royalnest.com | +1 (555) 123-4567</p>

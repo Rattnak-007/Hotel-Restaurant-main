@@ -61,53 +61,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cart_json'])) {
         if (!$error) {
             $cart = $validated_cart;
 
-            // Insert into restaurant_orders and get order_id
-            $order_id = null;
-            // Use a valid bind variable name for Oracle (must start with a letter, only letters/numbers/underscores)
-            $order_sql = "DECLARE new_order_id NUMBER; BEGIN INSERT INTO restaurant_orders (order_id, user_id, total_amount, status) 
-                              VALUES (restaurant_orders_seq.NEXTVAL, :uid, :total, 'Pending') 
-                              RETURNING order_id INTO new_order_id; :out_order_id := new_order_id; END;";
-            $stmt = oci_parse($connection, $order_sql);
-            oci_bind_by_name($stmt, ':uid', $user_id);
-            oci_bind_by_name($stmt, ':total', $total);
-            oci_bind_by_name($stmt, ':out_order_id', $order_id, 32);
-
-            if (!oci_execute($stmt)) {
-                $e = oci_error($stmt);
-                $error = 'Order creation failed: ' . htmlspecialchars($e['message']);
+            // Only proceed if payment is successful
+            $payment_success = false;
+            // Simulate payment gateway logic here (Stripe/PayPal/Cash)
+            // For demonstration, assume payment is successful for Stripe/PayPal, not for Cash
+            if ($method === 'Stripe' || $method === 'PayPal') {
+                $payment_success = true;
             } else {
-                // Insert order items
-                foreach ($cart as $item) {
-                    $oi_sql = "INSERT INTO order_items (order_item_id, order_id, menu_id, quantity, price) 
-                               VALUES (order_items_seq.NEXTVAL, :order_id, :mid, :qty, :price)";
-                    $oi_stmt = oci_parse($connection, $oi_sql);
-                    oci_bind_by_name($oi_stmt, ':order_id', $order_id);
-                    oci_bind_by_name($oi_stmt, ':mid', $item['id']);
-                    oci_bind_by_name($oi_stmt, ':qty', $item['quantity']);
-                    oci_bind_by_name($oi_stmt, ':price', $item['price']);
-                    if (!oci_execute($oi_stmt)) {
-                        $e = oci_error($oi_stmt);
-                        $error = 'Order item failed: ' . htmlspecialchars($e['message']);
-                        break;
+                // Cash payment is not considered paid until confirmed at property
+                $payment_success = false;
+            }
+
+            if ($payment_success) {
+                // Insert into restaurant_orders and get order_id
+                $order_id = null;
+                $order_sql = "DECLARE new_order_id NUMBER; BEGIN INSERT INTO restaurant_orders (order_id, user_id, total_amount, status) 
+                                  VALUES (restaurant_orders_seq.NEXTVAL, :uid, :total, 'Confirmed') RETURNING order_id INTO :out_order_id; END;";
+                $stmt = oci_parse($connection, $order_sql);
+                oci_bind_by_name($stmt, ':uid', $user_id);
+                oci_bind_by_name($stmt, ':total', $total);
+                oci_bind_by_name($stmt, ':out_order_id', $order_id, 32);
+
+                if (!oci_execute($stmt)) {
+                    $error = 'Order creation failed: ' . htmlspecialchars(oci_error($stmt)['message']);
+                } else {
+                    // Insert order items
+                    foreach ($cart as $item) {
+                        $sql_item = "INSERT INTO order_items (order_item_id, order_id, menu_id, quantity, price) VALUES (order_items_seq.NEXTVAL, :oid, :mid, :qty, :price)";
+                        $stmt_item = oci_parse($connection, $sql_item);
+                        oci_bind_by_name($stmt_item, ':oid', $order_id);
+                        oci_bind_by_name($stmt_item, ':mid', $item['id']);
+                        oci_bind_by_name($stmt_item, ':qty', $item['quantity']);
+                        oci_bind_by_name($stmt_item, ':price', $item['price']);
+                        oci_execute($stmt_item);
                     }
+                    // Insert payment record
+                    $sql_pay = "INSERT INTO order_payments (payment_id, order_id, user_id, amount, method, status, payment_date)
+                                VALUES (order_payments_seq.NEXTVAL, :oid, :uid, :amt, :method, 'Paid', SYSDATE)";
+                    $stmt_pay = oci_parse($connection, $sql_pay);
+                    oci_bind_by_name($stmt_pay, ':oid', $order_id);
+                    oci_bind_by_name($stmt_pay, ':uid', $user_id);
+                    oci_bind_by_name($stmt_pay, ':amt', $total);
+                    oci_bind_by_name($stmt_pay, ':method', $method);
+                    oci_execute($stmt_pay);
+
+                    $success = true;
                 }
-                // Insert payment if no error so far
-                if (!$error) {
-                    // Use a valid bind variable name for Oracle (must start with a letter, only letters/numbers/underscores)
-                    $pay_sql = "BEGIN INSERT INTO order_payments (payment_id, order_id, user_id, amount, method, status) 
-                                    VALUES (order_payments_seq.NEXTVAL, :order_id, :uid, :amt, :pay_method, 'Paid'); END;";
-                    $pay_stmt = oci_parse($connection, $pay_sql);
-                    oci_bind_by_name($pay_stmt, ':order_id', $order_id);
-                    oci_bind_by_name($pay_stmt, ':uid', $user_id);
-                    oci_bind_by_name($pay_stmt, ':amt', $total);
-                    oci_bind_by_name($pay_stmt, ':pay_method', $method);
-                    if (!oci_execute($pay_stmt)) {
-                        $e = oci_error($pay_stmt);
-                        $error = 'Payment failed: ' . htmlspecialchars($e['message']);
-                    } else {
-                        $success = true;
-                    }
-                }
+            } else {
+                $error = "Payment not completed. Your order was not stored.";
             }
         }
     }
