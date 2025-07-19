@@ -11,13 +11,13 @@ if (isset($_POST['add_room'])) {
 
     $image_url = '';
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/uploads/rooms/';
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/assets/uploads/rooms/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
         $filename = uniqid('room_') . '_' . basename($_FILES['image_file']['name']);
         $targetFile = $uploadDir . $filename;
-        $imageUrl = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+        $imageUrl = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
         if (move_uploaded_file($_FILES['image_file']['tmp_name'], $targetFile)) {
             $image_url = $imageUrl;
         }
@@ -51,13 +51,13 @@ if (isset($_POST['update_room'])) {
 
     $image_url = '';
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/uploads/rooms/';
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/assets/uploads/rooms/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
         $filename = uniqid('room_') . '_' . basename($_FILES['image_file']['name']);
         $targetFile = $uploadDir . $filename;
-        $imageUrl = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+        $imageUrl = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
         if (move_uploaded_file($_FILES['image_file']['tmp_name'], $targetFile)) {
             $image_url = $imageUrl;
         }
@@ -104,10 +104,10 @@ while ($row = oci_fetch_assoc($stmt)) {
         $row['DESCRIPTION'] = $row['DESCRIPTION']->load();
     }
 
-    $default_img = '/Hotel-Restaurant/assets/img/default-room.jpg';
+    $default_img = '/Hotel-Restaurant/img/default-room.jpg';
     $img = trim($row['IMAGE_URL'] ?? '');
     $filename = $img ? basename($img) : '';
-    $local_url = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+    $local_url = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
     $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
 
     if ($img && preg_match('/^https?:\/\//', $img)) {
@@ -134,10 +134,10 @@ if (isset($_GET['edit'])) {
         $edit_room['DESCRIPTION'] = $edit_room['DESCRIPTION']->load();
     }
 
-    $default_img = '/Hotel-Restaurant/assets/img/default-room.jpg';
+    $default_img = '/Hotel-Restaurant/img/default-room.jpg';
     $img = trim($edit_room['IMAGE_URL'] ?? '');
     $filename = $img ? basename($img) : '';
-    $local_url = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+    $local_url = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
     $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
 
     if ($img && preg_match('/^https?:\/\//', $img)) {
@@ -786,7 +786,7 @@ if (isset($_GET['edit'])) {
 
 <body>
     <div class="admin-container">
-        <a href="../Room/Products.php" class="back-link">
+        <a href="../Room/manage_Room.php" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Room Management
         </a>
         <div class="header">
@@ -1001,7 +1001,7 @@ if (isset($_GET['edit'])) {
                                     $default_img = '/Hotel-Restaurant/assets/img/default-room.jpg';
                                     $img = trim($room['IMAGE_URL'] ?? '');
                                     $filename = $img ? basename($img) : '';
-                                    $local_url = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+                                    $local_url = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
                                     $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
 
                                     if ($img && preg_match('/^https?:\/\//', $img)) {

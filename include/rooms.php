@@ -2,8 +2,8 @@
 
 require_once '../config/connect.php';
 
-// --- Fetch Available Rooms ---
-$sql = "SELECT * FROM rooms WHERE status = 'Available'";
+// --- Fetch All Rooms (not just Available) ---
+$sql = "SELECT * FROM rooms ORDER BY room_id DESC"; // <-- changed from WHERE status = 'Available'
 $stmt = oci_parse($connection, $sql);
 oci_execute($stmt);
 $rooms = [];
@@ -11,15 +11,16 @@ while ($row = oci_fetch_assoc($stmt)) {
   $default_img = '/Hotel-Restaurant/assets/img/default-room.jpg';
   $img = trim($row['IMAGE_URL'] ?? '');
   $filename = $img ? basename($img) : '';
-  $local_url = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+  $local_url = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename; // <-- FIXED PATH
   $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
 
+  // Always set IMAGE_URL_DISPLAY for template use
   if ($img && preg_match('/^https?:\/\//', $img)) {
-    $row['IMAGE_URL'] = $img;
+    $row['IMAGE_URL_DISPLAY'] = $img;
   } elseif ($filename && file_exists($file_path)) {
-    $row['IMAGE_URL'] = $local_url;
+    $row['IMAGE_URL_DISPLAY'] = $local_url;
   } else {
-    $row['IMAGE_URL'] = $default_img;
+    $row['IMAGE_URL_DISPLAY'] = $default_img;
   }
   // Convert OCILob (CLOB) fields to string for DESCRIPTION
   if (isset($row['DESCRIPTION']) && is_object($row['DESCRIPTION']) && $row['DESCRIPTION'] instanceof OCILob) {
@@ -246,16 +247,12 @@ while ($row = oci_fetch_assoc($stmt)) {
       <div class="room-grid">
         <?php foreach ($rooms as $room): ?>
           <div class="room-card">
-            <?php if (!empty($room['IMAGE_URL'])): ?>
+            <div class="room-image">
               <img
-                src="<?php echo htmlspecialchars($room['IMAGE_URL']); ?>"
+                src="<?php echo htmlspecialchars($room['IMAGE_URL_DISPLAY']); ?>"
                 alt="Room Image"
                 style="width:100%;height:250px;object-fit:cover;display:block;border-bottom:1px solid #eee;">
-            <?php else: ?>
-              <div style="width:100%;height:250px;display:flex;align-items:center;justify-content:center;background:#f8f4e9;color:#bbb;font-size:2rem;border-bottom:1px solid #eee;">
-                No Image
-              </div>
-            <?php endif; ?>
+            </div>
             <div class="room-content">
               <h3 class="room-name"><?php echo htmlspecialchars($room['ROOM_NAME']); ?></h3>
               <div class="room-price">

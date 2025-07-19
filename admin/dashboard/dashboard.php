@@ -1,4 +1,15 @@
 <?php
+session_start();
+// Session timeout: 30 minutes
+$timeout = 1800; // seconds
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {
+  session_unset();
+  session_destroy();
+  header("Location: /Hotel-Restaurant/auth/login.php?timeout=1");
+  exit;
+}
+$_SESSION['last_activity'] = time();
+
 require_once '../../config/connect.php';
 
 // Fetch rooms

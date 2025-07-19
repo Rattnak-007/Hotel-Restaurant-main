@@ -10,15 +10,15 @@ while ($row = oci_fetch_assoc($stmt)) {
     $default_img = '/Hotel-Restaurant/assets/img/default-food.jpg';
     $img = trim($row['IMAGE_URL'] ?? '');
     $filename = $img ? basename($img) : '';
-    $local_url = '/Hotel-Restaurant/uploads/food/' . $filename;
+    $local_url = '/Hotel-Restaurant/assets/uploads/food/' . $filename;
     $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
 
     if ($img && preg_match('/^https?:\/\//', $img)) {
-        $row['IMAGE_URL'] = $img;
+        $row['IMAGE_URL_DISPLAY'] = $img;
     } elseif ($filename && file_exists($file_path)) {
-        $row['IMAGE_URL'] = $local_url;
+        $row['IMAGE_URL_DISPLAY'] = $local_url;
     } else {
-        $row['IMAGE_URL'] = $default_img;
+        $row['IMAGE_URL_DISPLAY'] = $default_img;
     }
     // Convert OCILob (CLOB) fields to string for DESCRIPTION
     if (isset($row['DESCRIPTION']) && is_object($row['DESCRIPTION']) && $row['DESCRIPTION'] instanceof OCILob) {
@@ -487,7 +487,7 @@ while ($row = oci_fetch_assoc($stmt)) {
                 <?php foreach ($menu_items as $item): ?>
                     <div class="menu-card">
                         <img
-                            src="<?php echo htmlspecialchars($item['IMAGE_URL']); ?>"
+                            src="<?php echo htmlspecialchars($item['IMAGE_URL_DISPLAY']); ?>"
                             alt="<?php echo htmlspecialchars($item['NAME']); ?>"
                             class="menu-img">
                         <div class="menu-content">

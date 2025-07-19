@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../../auth/login.php");
+    exit;
+}
 require_once '../../config/connect.php';
 
 // --- Initialization ---
@@ -46,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_food'])) {
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (in_array($_FILES['image']['type'], $allowed_types)) {
-            $upload_dir = '/Hotel-Restaurant/uploads/food/';
+            $upload_dir = '/Hotel-Restaurant/assets/uploads/food/';
             $target_dir = $_SERVER['DOCUMENT_ROOT'] . $upload_dir;
             if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
             $filename = uniqid() . '_' . basename($_FILES['image']['name']);
@@ -93,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_food'])) {
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (in_array($_FILES['image']['type'], $allowed_types)) {
-            $upload_dir = '/Hotel-Restaurant/uploads/food/';
+            $upload_dir = '/Hotel-Restaurant/assets/uploads/food/';
             $target_dir = $_SERVER['DOCUMENT_ROOT'] . $upload_dir;
             if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
             $filename = uniqid() . '_' . basename($_FILES['image']['name']);
@@ -120,8 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_food'])) {
         oci_bind_by_name($stmt, ':image_url', $image_url);
 
         if (oci_execute($stmt)) {
-            $message = "<span class='success'>Food item added successfully!</span>";
-            header("Location: Add_Food.php?msg=added");
+            header("Location: ../Menu/manage_menu.php");
             exit;
         } else {
             $e = oci_error($stmt);

@@ -38,7 +38,6 @@ while ($row = oci_fetch_assoc($stmt)) {
         <div class="main-content">
             <h3>Existing Services</h3>
             <a href="../User/manage_detail.php" class="btn btn-primary" style="margin-bottom:16px;"><i class="fas fa-plus"></i> Add Service</a>
-            <a href="../Room/Add_Room.php" class="btn btn-primary" style="margin-bottom:16px;"><i class="fas fa-plus"></i> Add Room</a>
             <div style="overflow-x:auto;">
                 <table class="manage-services-table">
                     <tr>

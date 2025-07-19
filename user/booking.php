@@ -13,6 +13,7 @@ $booking_id = null;
 
 // Fetch room info for booking form
 $room = null;
+$room_bookings = [];
 if ($room_id) {
     $sql = "SELECT * FROM rooms WHERE room_id = :room_id";
     $stmt = oci_parse($connection, $sql);
@@ -26,7 +27,7 @@ if ($room_id) {
         $default_img = '/Hotel-Restaurant/assets/img/default-room.jpg';
         $img = trim($room['IMAGE_URL'] ?? '');
         $filename = $img ? basename($img) : '';
-        $local_url = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+        $local_url = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
         $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
         if ($img && preg_match('/^https?:\/\//', $img)) {
             $room['IMAGE_URL_DISPLAY'] = $img;
@@ -38,6 +39,17 @@ if ($room_id) {
     } else {
         $room = null;
     }
+
+    // Fetch existing bookings for this room
+    $sql_existing = "SELECT check_in_date, check_out_date, status FROM bookings WHERE room_id = :room_id ORDER BY check_in_date";
+    $stmt_existing = oci_parse($connection, $sql_existing);
+    oci_bind_by_name($stmt_existing, ':room_id', $room_id);
+    oci_execute($stmt_existing);
+    while ($row = oci_fetch_assoc($stmt_existing)) {
+        $row['CHECK_IN_DATE'] = date('Y-m-d', strtotime($row['CHECK_IN_DATE']));
+        $row['CHECK_OUT_DATE'] = date('Y-m-d', strtotime($row['CHECK_OUT_DATE']));
+        $room_bookings[] = $row;
+    }
 }
 
 // Handle booking form submission
@@ -47,39 +59,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
     $check_out = $_POST['check_out'];
     $guest_name = $_POST['guest_name'] ?? ($_SESSION['name'] ?? 'Guest');
     $guest_email = $_POST['guest_email'] ?? ($_SESSION['email'] ?? 'guest@example.com');
-    $guest_phone = $_POST['guest_phone'] ?? ($_SESSION['phone'] ?? ''); // <-- FIXED: get phone from POST
+    $guest_phone = $_POST['guest_phone'] ?? ($_SESSION['phone'] ?? '');
+
     // Basic validation
     if (!$room_id || !$check_in || !$check_out) {
         $booking_msg = "Please fill all fields.";
     } elseif (strtotime($check_in) >= strtotime($check_out)) {
         $booking_msg = "Check-out must be after check-in.";
     } else {
-        $sql = "INSERT INTO bookings (booking_id, user_id, room_id, check_in_date, check_out_date, status, created_at)
-                VALUES (bookings_seq.NEXTVAL, :p_uid, :p_rid, TO_DATE(:p_cin, 'YYYY-MM-DD'), TO_DATE(:p_cout, 'YYYY-MM-DD'), 'Pending', SYSDATE)
-                RETURNING booking_id INTO :new_booking_id";
-        $stmt = oci_parse($connection, $sql);
-        oci_bind_by_name($stmt, ':p_uid', $user_id);
-        oci_bind_by_name($stmt, ':p_rid', $room_id);
-        oci_bind_by_name($stmt, ':p_cin', $check_in);
-        oci_bind_by_name($stmt, ':p_cout', $check_out);
-        oci_bind_by_name($stmt, ':new_booking_id', $booking_id, 32);
-        if (oci_execute($stmt)) {
-            // Insert guest record
-            $sql_guest = "INSERT INTO guests (guest_id, first_name, email, phone, booking_id, room_id, created_at)
-                          VALUES (guests_seq.NEXTVAL, :gname, :gemail, :gphone, :bid, :rid, SYSDATE)";
-            $stmt_guest = oci_parse($connection, $sql_guest);
-            oci_bind_by_name($stmt_guest, ':gname', $guest_name);
-            oci_bind_by_name($stmt_guest, ':gemail', $guest_email);
-            oci_bind_by_name($stmt_guest, ':gphone', $guest_phone); // <-- FIXED: phone now set
-            oci_bind_by_name($stmt_guest, ':bid', $booking_id);
-            oci_bind_by_name($stmt_guest, ':rid', $room_id);
-            oci_execute($stmt_guest);
-            // Redirect to booking payment page
-            header("Location: Booking_payment.php?booking_id=" . $booking_id);
-            exit;
+        // Check for overlapping bookings
+        $sql_overlap = "SELECT COUNT(*) AS CNT FROM bookings
+            WHERE room_id = :room_id
+            AND status IN ('Pending', 'Confirmed')
+            AND (
+                (TO_DATE(:check_in, 'YYYY-MM-DD') < check_out_date AND TO_DATE(:check_out, 'YYYY-MM-DD') > check_in_date)
+            )";
+        $stmt_overlap = oci_parse($connection, $sql_overlap);
+        oci_bind_by_name($stmt_overlap, ':room_id', $room_id);
+        oci_bind_by_name($stmt_overlap, ':check_in', $check_in);
+        oci_bind_by_name($stmt_overlap, ':check_out', $check_out);
+        oci_execute($stmt_overlap);
+        $row_overlap = oci_fetch_assoc($stmt_overlap);
+        if ($row_overlap['CNT'] > 0) {
+            $booking_msg = "This room is already booked for the selected dates. Please choose different dates.";
         } else {
-            $e = oci_error($stmt);
-            $booking_msg = "Booking failed: " . htmlspecialchars($e['message']);
+            $sql = "INSERT INTO bookings (booking_id, user_id, room_id, check_in_date, check_out_date, status, created_at)
+                    VALUES (bookings_seq.NEXTVAL, :p_uid, :p_rid, TO_DATE(:p_cin, 'YYYY-MM-DD'), TO_DATE(:p_cout, 'YYYY-MM-DD'), 'Pending', SYSDATE)
+                    RETURNING booking_id INTO :new_booking_id";
+            $stmt = oci_parse($connection, $sql);
+            oci_bind_by_name($stmt, ':p_uid', $user_id);
+            oci_bind_by_name($stmt, ':p_rid', $room_id);
+            oci_bind_by_name($stmt, ':p_cin', $check_in);
+            oci_bind_by_name($stmt, ':p_cout', $check_out);
+            oci_bind_by_name($stmt, ':new_booking_id', $booking_id, 32);
+            if (oci_execute($stmt)) {
+                // Insert guest record
+                $sql_guest = "INSERT INTO guests (guest_id, first_name, email, phone, booking_id, room_id, created_at)
+                              VALUES (guests_seq.NEXTVAL, :gname, :gemail, :gphone, :bid, :rid, SYSDATE)";
+                $stmt_guest = oci_parse($connection, $sql_guest);
+                oci_bind_by_name($stmt_guest, ':gname', $guest_name);
+                oci_bind_by_name($stmt_guest, ':gemail', $guest_email);
+                oci_bind_by_name($stmt_guest, ':gphone', $guest_phone); // <-- FIXED: phone now set
+                oci_bind_by_name($stmt_guest, ':bid', $booking_id);
+                oci_bind_by_name($stmt_guest, ':rid', $room_id);
+                oci_execute($stmt_guest);
+                // Redirect to booking payment page
+                header("Location: Booking_payment.php?booking_id=" . $booking_id);
+                exit;
+            } else {
+                $e = oci_error($stmt);
+                $booking_msg = "Booking failed: " . htmlspecialchars($e['message']);
+            }
         }
     }
 }
@@ -415,6 +445,31 @@ while ($row = oci_fetch_assoc($stmt)) {
                         <p class="room-desc"><?= substr(htmlspecialchars($room['DESCRIPTION']), 0, 200) ?>...</p>
                     </div>
                 </div>
+
+                <!-- Show existing bookings for this room -->
+                <?php if (!empty($room_bookings)): ?>
+                    <div style="margin-bottom:20px;">
+                        <h3 style="font-size:1.2rem;color:#8c6d46;margin-bottom:8px;">Existing Bookings for this Room:</h3>
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#f8f6f2;">
+                                    <th style="padding:8px;">Check-in</th>
+                                    <th style="padding:8px;">Check-out</th>
+                                    <th style="padding:8px;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($room_bookings as $b): ?>
+                                    <tr>
+                                        <td style="padding:8px;"><?= htmlspecialchars($b['CHECK_IN_DATE']) ?></td>
+                                        <td style="padding:8px;"><?= htmlspecialchars($b['CHECK_OUT_DATE']) ?></td>
+                                        <td style="padding:8px;"><?= htmlspecialchars($b['STATUS']) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
 
                 <form method="post" class="booking-form">
                     <input type="hidden" name="room_id" value="<?= $room['ROOM_ID'] ?>">

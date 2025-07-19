@@ -26,7 +26,7 @@ if (isset($room['DESCRIPTION']) && is_object($room['DESCRIPTION']) && $room['DES
 
 $img = trim($room['IMAGE_URL'] ?? '');
 $filename = $img ? basename($img) : '';
-$local_url = '/Hotel-Restaurant/uploads/rooms/' . $filename;
+$local_url = '/Hotel-Restaurant/assets/uploads/rooms/' . $filename;
 $file_path = $_SERVER['DOCUMENT_ROOT'] . $local_url;
 $default_img = '/Hotel-Restaurant/assets/img/default-room.jpg';
 

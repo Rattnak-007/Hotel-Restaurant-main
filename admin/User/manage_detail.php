@@ -27,12 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_service'])) {
 
     // Handle image upload
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/uploads/services/';
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/assets/uploads/services/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         $filename = uniqid() . '_' . basename($_FILES['image']['name']);
         $targetFile = $uploadDir . $filename;
         if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-            $image_url = '/Hotel-Restaurant/uploads/services/' . $filename;
+            $image_url = '/Hotel-Restaurant/assets/uploads/services/' . $filename;
         }
     }
 
@@ -57,12 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_service'])) {
 
     // Handle image upload
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/uploads/services/';
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/assets/uploads/services/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         $filename = uniqid() . '_' . basename($_FILES['image']['name']);
         $targetFile = $uploadDir . $filename;
         if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-            $image_url = '/Hotel-Restaurant/uploads/services/' . $filename;
+            $image_url = '/Hotel-Restaurant/assets/uploads/services/' . $filename;
         }
     }
 
