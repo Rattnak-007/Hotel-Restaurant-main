@@ -17,10 +17,18 @@ require_once("../../config/connect.php");
         --transition: all 0.3s ease;
     }
 
+    body {
+        font-family: 'Arial', sans-serif;
+        background: #f4f7fa;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
     .content {
+        margin-left: 260px;
         padding: 30px;
-        margin-left: 250px;
-        transition: var(--transition);
+        transition: all 0.3s ease;
     }
 
     .contact-table-container {

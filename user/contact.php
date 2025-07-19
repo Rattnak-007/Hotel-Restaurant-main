@@ -158,17 +158,17 @@
         <?php
         require_once("../config/connect.php");
         $msg = '';
+        $name = $email = $phone = $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
             $name = trim($_POST['name'] ?? '');
             $email = trim($_POST['email'] ?? '');
-            $phone = trim($_POST['phone'] ?? ''); // new
+            $phone = trim($_POST['phone'] ?? '');
             $message = trim($_POST['message'] ?? '');
             if (!$name || !$email || !$message) {
-                $msg = '<div class="msg-error">Please fill in all fields.</div>';
+                $msg = '<div class="msg-error"><i class="fas fa-exclamation-circle"></i> Please fill in all required fields.</div>';
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $msg = '<div class="msg-error">Please enter a valid email address.</div>';
+                $msg = '<div class="msg-error"><i class="fas fa-exclamation-circle"></i> Please enter a valid email address.</div>';
             } else {
-                // Insert into contact table
                 $sql = "INSERT INTO contact (id, name, email, phone, message, created_at) VALUES (contact_seq.NEXTVAL, :name, :email, :phone, :message, SYSDATE)";
                 $stmt = oci_parse($connection, $sql);
                 oci_bind_by_name($stmt, ":name", $name);
@@ -177,31 +177,35 @@
                 oci_bind_by_name($stmt, ":message", $message);
                 $result = oci_execute($stmt);
                 if ($result) {
-                    $msg = '<div class="msg-success">Thank you for contacting us! We will get back to you soon.</div>';
+                    $msg = '<div class="msg-success"><i class="fas fa-check-circle"></i> Thank you for contacting us! We will get back to you soon.</div>';
+                    $name = $email = $phone = $message = '';
                 } else {
-                    $msg = '<div class="msg-error">Failed to submit your message. Please try again later.</div>';
+                    $msg = '<div class="msg-error"><i class="fas fa-exclamation-circle"></i> Failed to submit your message. Please try again later.</div>';
                 }
                 oci_free_statement($stmt);
             }
         }
         echo $msg;
         ?>
-        <form method="post" class="contact-form">
-            <div class="form-group">
-                <label class="form-label" for="name">Your Name</label>
-                <input type="text" name="name" id="name" class="form-input" required>
+        <form method="post" class="contact-form" autocomplete="off">
+            <div class="form-group" style="position:relative;">
+                <label class="form-label" for="name">Your Name <span style="color:#d93025">*</span></label>
+                <input type="text" name="name" id="name" class="form-input" placeholder="Enter your full name" value="<?php echo htmlspecialchars($name); ?>" required>
+                <i class="fas fa-user input-icon" style="position:absolute;right:16px;top:40px;color:#aaa;"></i>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="email">Your Email</label>
-                <input type="email" name="email" id="email" class="form-input" required>
+            <div class="form-group" style="position:relative;">
+                <label class="form-label" for="email">Your Email <span style="color:#d93025">*</span></label>
+                <input type="email" name="email" id="email" class="form-input" placeholder="Enter your email address" value="<?php echo htmlspecialchars($email); ?>" required>
+                <i class="fas fa-envelope input-icon" style="position:absolute;right:16px;top:40px;color:#aaa;"></i>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="position:relative;">
                 <label class="form-label" for="phone">Your Phone</label>
-                <input type="text" name="phone" id="phone" class="form-input">
+                <input type="text" name="phone" id="phone" class="form-input" placeholder="Enter your phone number" value="<?php echo htmlspecialchars($phone); ?>">
+                <i class="fas fa-phone input-icon" style="position:absolute;right:16px;top:40px;color:#aaa;"></i>
             </div>
             <div class="form-group">
-                <label class="form-label" for="message">Message</label>
-                <textarea name="message" id="message" class="form-textarea" required></textarea>
+                <label class="form-label" for="message">Message <span style="color:#d93025">*</span></label>
+                <textarea name="message" id="message" class="form-textarea" placeholder="How can we assist you?" required><?php echo htmlspecialchars($message); ?></textarea>
             </div>
             <button type="submit" name="contact_submit" class="submit-btn">
                 <i class="fas fa-paper-plane"></i> Send Message
