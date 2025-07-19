@@ -737,6 +737,16 @@ $users_total_today = $row['TOTAL'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Total Revenue Today Card -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(241, 196, 15, 0.15); color: var(--warning);">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">$<?php echo number_format($users_total_today, 2); ?></div>
+                        <div class="stat-label">Total Revenue (Today)</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Food Menu Table -->
@@ -775,7 +785,11 @@ $users_total_today = $row['TOTAL'] ?? 0;
                                     </td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($foods as $food): ?>
+                                <?php
+                                $total_menu_price = 0;
+                                foreach ($foods as $food):
+                                    $total_menu_price += floatval($food['PRICE']);
+                                ?>
                                     <tr>
                                         <td><?php echo $food['MENU_ID']; ?></td>
                                         <td><?php echo htmlspecialchars($food['NAME']); ?></td>
@@ -804,6 +818,12 @@ $users_total_today = $row['TOTAL'] ?? 0;
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
+                                <!-- Total Menu Price Row -->
+                                <tr style="background:#f8f6f2;font-weight:700;">
+                                    <td colspan="3" style="text-align:right;">Total Menu Price:</td>
+                                    <td>$<?php echo number_format($total_menu_price, 2); ?></td>
+                                    <td colspan="2"></td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
