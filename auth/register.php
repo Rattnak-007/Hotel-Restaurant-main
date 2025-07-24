@@ -57,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 oci_free_statement($stmt);
                 oci_close($connection);
 
-                // Redirect to user home page
                 header("Location: ../user/index.php");
                 exit;
             } else {

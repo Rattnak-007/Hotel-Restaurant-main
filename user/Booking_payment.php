@@ -1,11 +1,11 @@
 <?php
 require_once '../config/connect.php';
 session_start();
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) {
-    header('Location: /Hotel-Restaurant/auth/login.php');
-    exit;
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../auth/login.php");
+    exit();
 }
+$user_id = $_SESSION['user_id'];
 
 $booking_id = $_GET['booking_id'] ?? null;
 $success = false;

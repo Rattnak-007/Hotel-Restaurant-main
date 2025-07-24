@@ -1,5 +1,10 @@
 <?php
 session_start();
+// Require login for dashboard access
+if (!isset($_SESSION['user_id'])) {
+  header("Location: /Hotel-Restaurant/auth/login.php");
+  exit;
+}
 // Session timeout: 30 minutes
 $timeout = 1800; // seconds
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {

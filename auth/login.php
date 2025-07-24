@@ -13,7 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = oci_fetch_array($stmt, OCI_ASSOC);
 
     if ($user && password_verify($password, $user['PASSWORD'])) {
-        // Always fetch name from DB and set in session
         $_SESSION['user_id'] = $user['USER_ID'];
         $_SESSION['name'] = $user['NAME'];
         $_SESSION['role'] = $user['ROLE'];

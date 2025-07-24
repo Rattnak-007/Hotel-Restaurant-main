@@ -1,5 +1,10 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/config/connect.php';
+require_once '../../config/connect.php';
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../auth/login.php");
+    exit();
+}
 
 // --- Fetch Services (Rooms) ---
 $services = [];

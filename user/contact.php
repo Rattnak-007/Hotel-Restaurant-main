@@ -1,4 +1,11 @@
-<?php require_once("../include/Header.php"); ?>
+<?php
+require_once("../include/Header.php");
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../auth/login.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
