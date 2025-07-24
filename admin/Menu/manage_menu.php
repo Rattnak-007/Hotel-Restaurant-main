@@ -25,9 +25,9 @@ if (isset($_GET['filter_date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fi
 }
 
 // --- Today's Orders ---
-$sql = "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TRUNC(order_date) = TO_DATE(:today, 'YYYY-MM-DD')";
+$sql = "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TRUNC(order_date) = TO_DATE(:today_val, 'YYYY-MM-DD')";
 $stmt = oci_parse($connection, $sql);
-oci_bind_by_name($stmt, ':today', $today);
+oci_bind_by_name($stmt, ':today_val', $today);
 oci_execute($stmt);
 $row = oci_fetch_assoc($stmt);
 $today_orders = $row['CNT'] ?? 0;
@@ -43,10 +43,10 @@ $staff_count = $row['CNT'] ?? 0;
 $current_user_id = $_SESSION['user_id'] ?? null;
 $user_orders_today = 0;
 if ($current_user_id) {
-    $sql = "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE user_id = :uid AND TRUNC(order_date) = TO_DATE(:today, 'YYYY-MM-DD')";
+    $sql = "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE user_id = :uid_val AND TRUNC(order_date) = TO_DATE(:today_val, 'YYYY-MM-DD')";
     $stmt = oci_parse($connection, $sql);
-    oci_bind_by_name($stmt, ':uid', $current_user_id);
-    oci_bind_by_name($stmt, ':today', $today);
+    oci_bind_by_name($stmt, ':uid_val', $current_user_id);
+    oci_bind_by_name($stmt, ':today_val', $today);
     oci_execute($stmt);
     $row = oci_fetch_assoc($stmt);
     $user_orders_today = $row['CNT'] ?? 0;
@@ -57,27 +57,27 @@ $user_order_items = [];
 $user_order_payment = null;
 if ($current_user_id) {
     // Get today's order for user
-    $sql = "SELECT order_id FROM restaurant_orders WHERE user_id = :uid AND TRUNC(order_date) = TO_DATE(:today, 'YYYY-MM-DD')";
+    $sql = "SELECT order_id FROM restaurant_orders WHERE user_id = :uid_val AND TRUNC(order_date) = TO_DATE(:today_val, 'YYYY-MM-DD')";
     $stmt = oci_parse($connection, $sql);
-    oci_bind_by_name($stmt, ':uid', $current_user_id);
-    oci_bind_by_name($stmt, ':today', $today);
+    oci_bind_by_name($stmt, ':uid_val', $current_user_id);
+    oci_bind_by_name($stmt, ':today_val', $today);
     oci_execute($stmt);
     $order_row = oci_fetch_assoc($stmt);
     $user_order_id = $order_row['ORDER_ID'] ?? null;
 
     if ($user_order_id) {
         // Fetch order items
-        $sql = "SELECT oi.*, rm.name FROM order_items oi JOIN restaurant_menu rm ON oi.menu_id = rm.menu_id WHERE oi.order_id = :oid";
+        $sql = "SELECT oi.*, rm.name FROM order_items oi JOIN restaurant_menu rm ON oi.menu_id = rm.menu_id WHERE oi.order_id = :oid_val";
         $stmt = oci_parse($connection, $sql);
-        oci_bind_by_name($stmt, ':oid', $user_order_id);
+        oci_bind_by_name($stmt, ':oid_val', $user_order_id);
         oci_execute($stmt);
         while ($row = oci_fetch_assoc($stmt)) {
             $user_order_items[] = $row;
         }
         // Fetch payment info
-        $sql = "SELECT * FROM order_payments WHERE order_id = :oid";
+        $sql = "SELECT * FROM order_payments WHERE order_id = :oid_val";
         $stmt = oci_parse($connection, $sql);
-        oci_bind_by_name($stmt, ':oid', $user_order_id);
+        oci_bind_by_name($stmt, ':oid_val', $user_order_id);
         oci_execute($stmt);
         $user_order_payment = oci_fetch_assoc($stmt);
     }
@@ -107,9 +107,9 @@ $sql = "SELECT COUNT(DISTINCT u.user_id) AS CNT
         FROM users u
         JOIN restaurant_orders ro ON u.user_id = ro.user_id
         WHERE LOWER(u.role) != 'staff'
-          AND TRUNC(ro.order_date) = TO_DATE(:today, 'YYYY-MM-DD')";
+          AND TRUNC(ro.order_date) = TO_DATE(:today_val, 'YYYY-MM-DD')";
 $stmt = oci_parse($connection, $sql);
-oci_bind_by_name($stmt, ':today', $today);
+oci_bind_by_name($stmt, ':today_val', $today);
 oci_execute($stmt);
 $row = oci_fetch_assoc($stmt);
 $users_purchased_today = $row['CNT'] ?? 0;
@@ -119,10 +119,10 @@ $sql = "SELECT NVL(SUM(op.amount),0) AS TOTAL
         FROM order_payments op
         JOIN users u ON op.user_id = u.user_id
         WHERE LOWER(u.role) != 'staff'
-          AND TRUNC(op.payment_date) = TO_DATE(:today, 'YYYY-MM-DD')
+          AND TRUNC(op.payment_date) = TO_DATE(:today_val, 'YYYY-MM-DD')
           AND LOWER(op.status) = 'paid'";
 $stmt = oci_parse($connection, $sql);
-oci_bind_by_name($stmt, ':today', $today);
+oci_bind_by_name($stmt, ':today_val', $today);
 oci_execute($stmt);
 $row = oci_fetch_assoc($stmt);
 $users_total_today = $row['TOTAL'] ?? 0;
