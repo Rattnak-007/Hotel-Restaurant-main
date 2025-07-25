@@ -1,7 +1,10 @@
 <?php
 require_once '../config/connect.php';
 session_start();
-
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../auth/login.php");
+    exit();
+}
 $room_id = $_GET['id'] ?? null;
 if (!$room_id) {
     echo "<h2>Room not found.</h2>";

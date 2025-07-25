@@ -1,7 +1,6 @@
 <?php
 require_once '../config/connect.php';
 session_start();
-// Assume user is logged in and user_id is in session
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
