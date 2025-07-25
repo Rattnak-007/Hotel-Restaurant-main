@@ -40,8 +40,8 @@ if ($room_id) {
         $room = null;
     }
 
-    // Fetch existing bookings for this room
-    $sql_existing = "SELECT check_in_date, check_out_date, status FROM bookings WHERE room_id = :room_id ORDER BY check_in_date";
+    // Fetch existing bookings for this room (only future or ongoing bookings)
+    $sql_existing = "SELECT check_in_date, check_out_date, status FROM bookings WHERE room_id = :room_id AND check_out_date >= TRUNC(SYSDATE) ORDER BY check_in_date";
     $stmt_existing = oci_parse($connection, $sql_existing);
     oci_bind_by_name($stmt_existing, ':room_id', $room_id);
     oci_execute($stmt_existing);
@@ -112,6 +112,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
             }
         }
     }
+}
+
+// Handle booking cancellation
+if (isset($_GET['cancel_booking'])) {
+    $cancel_id = intval($_GET['cancel_booking']);
+    // Delete payment
+    $sql = "DELETE FROM booking_payments WHERE booking_id = :bid";
+    $stmt = oci_parse($connection, $sql);
+    oci_bind_by_name($stmt, ':bid', $cancel_id);
+    oci_execute($stmt);
+    // Delete guest
+    $sql = "DELETE FROM guests WHERE booking_id = :bid";
+    $stmt = oci_parse($connection, $sql);
+    oci_bind_by_name($stmt, ':bid', $cancel_id);
+    oci_execute($stmt);
+    // Delete booking
+    $sql = "DELETE FROM bookings WHERE booking_id = :bid AND user_id = :uid";
+    $stmt = oci_parse($connection, $sql);
+    oci_bind_by_name($stmt, ':bid', $cancel_id);
+    oci_bind_by_name($stmt, ':uid', $user_id);
+    oci_execute($stmt);
+    header("Location: booking.php?msg=cancelled");
+    exit;
+}
+
+// Handle check-in
+if (isset($_GET['checkin'])) {
+    $bid = intval($_GET['checkin']);
+    $today = date('Y-m-d');
+    $sql = "UPDATE bookings SET status = 'Checked-in' WHERE booking_id = :bid AND user_id = :uid AND status = 'Confirmed' AND TO_CHAR(check_in_date, 'YYYY-MM-DD') = :today";
+    $stmt = oci_parse($connection, $sql);
+    oci_bind_by_name($stmt, ':bid', $bid);
+    oci_bind_by_name($stmt, ':uid', $user_id);
+    oci_bind_by_name($stmt, ':today', $today);
+    oci_execute($stmt);
+    header("Location: booking.php?msg=checkedin");
+    exit;
+}
+
+// Handle check-out
+if (isset($_GET['checkout'])) {
+    $bid = intval($_GET['checkout']);
+    $today = date('Y-m-d');
+    $sql = "UPDATE bookings SET status = 'Checked-out' WHERE booking_id = :bid AND user_id = :uid AND status = 'Checked-in' AND TO_CHAR(check_out_date, 'YYYY-MM-DD') = :today";
+    $stmt = oci_parse($connection, $sql);
+    oci_bind_by_name($stmt, ':bid', $bid);
+    oci_bind_by_name($stmt, ':uid', $user_id);
+    oci_bind_by_name($stmt, ':today', $today);
+    oci_execute($stmt);
+    header("Location: booking.php?msg=checkedout");
+    exit;
 }
 
 // Fetch user's bookings

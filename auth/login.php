@@ -2,6 +2,22 @@
 session_start();
 $connection = require_once '../config/connect.php';
 
+// Fix: Use separate session keys for admin and user, do not unset the other on login
+function set_user_session($user)
+{
+    if (strtolower($user['ROLE']) === 'admin') {
+        $_SESSION['admin_id'] = $user['USER_ID'];
+        $_SESSION['admin_name'] = $user['NAME'];
+        $_SESSION['admin_role'] = $user['ROLE'];
+        $_SESSION['admin_last_activity'] = time();
+    } else {
+        $_SESSION['user_id'] = $user['USER_ID'];
+        $_SESSION['name'] = $user['NAME'];
+        $_SESSION['role'] = $user['ROLE'];
+        $_SESSION['last_activity'] = time();
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
@@ -13,14 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = oci_fetch_array($stmt, OCI_ASSOC);
 
     if ($user && password_verify($password, $user['PASSWORD'])) {
-        $_SESSION['user_id'] = $user['USER_ID'];
-        $_SESSION['name'] = $user['NAME'];
-        $_SESSION['role'] = $user['ROLE'];
+        set_user_session($user);
 
         oci_free_statement($stmt);
         oci_close($connection);
 
-        if ($user['ROLE'] === 'admin') {
+        if (strtolower($user['ROLE']) === 'admin') {
             header("Location: ../admin/dashboard/dashboard.php");
         } else {
             header("Location: ../user/index.php");

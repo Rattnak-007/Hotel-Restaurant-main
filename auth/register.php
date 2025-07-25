@@ -2,6 +2,22 @@
 session_start();
 $connection = require_once '../config/connect.php';
 
+// Fix: Use separate session keys for admin and user, do not unset the other on register
+function set_user_session($user_id, $name, $role)
+{
+    if (strtolower($role) === 'admin') {
+        $_SESSION['admin_id'] = $user_id;
+        $_SESSION['admin_name'] = $name;
+        $_SESSION['admin_role'] = $role;
+        $_SESSION['admin_last_activity'] = time();
+    } else {
+        $_SESSION['user_id'] = $user_id;
+        $_SESSION['name'] = $name;
+        $_SESSION['role'] = $role;
+        $_SESSION['last_activity'] = time();
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
@@ -50,9 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $session_name = $user_row && isset($user_row['NAME']) ? $user_row['NAME'] : $name;
                 oci_free_statement($stmt_user);
 
-                $_SESSION['user_id'] = $new_user_id;
-                $_SESSION['name'] = $session_name;
-                $_SESSION['role'] = 'user';
+                set_user_session($new_user_id, $session_name, 'user');
 
                 oci_free_statement($stmt);
                 oci_close($connection);

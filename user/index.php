@@ -1,8 +1,8 @@
 <?php
 session_start();
-// Redirect admin users to admin dashboard
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-    header("Location: /Hotel-Restaurant/admin/dashboard/dashboard.php");
+// Only allow users (not admins) to access this page
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
+    header("Location: /Hotel-Restaurant/auth/login.php");
     exit;
 }
 // Session timeout: 30 minutes
@@ -13,7 +13,6 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     header("Location: /Hotel-Restaurant/auth/login.php?timeout=1");
     exit;
 }
-// Only update last_activity if session is still valid
 $_SESSION['last_activity'] = time();
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/config/connect.php';
@@ -50,6 +49,9 @@ $categories = [
     'Event',
     'Other'
 ];
+
+// To display the user's name in the profile icon or header, use:
+$user_name = isset($_SESSION['name']) ? $_SESSION['name'] : 'User';
 ?>
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/include/Header.php'; ?>
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/Hotel-Restaurant/include/slider.php'; ?>

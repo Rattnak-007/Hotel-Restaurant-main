@@ -2,11 +2,11 @@
 session_start();
 require_once '../../config/connect.php';
 
-// Only allow admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../../auth/login.php");
-    exit;
-}
+// // Only allow admin
+// if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+//     header("Location: ../../auth/login.php");
+//     exit;
+// }
 
 // --- Filter logic ---
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';

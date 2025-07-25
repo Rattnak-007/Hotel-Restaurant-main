@@ -108,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cart_json'])) {
                 }
             } else {
                 $error = "Payment not completed. Your order was not stored.";
+                // Do not store order/order_items/payment if payment not successful
             }
         }
     }
