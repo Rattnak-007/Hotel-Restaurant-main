@@ -1,10 +1,5 @@
 <?php require_once("../include/Header.php");
 require_once '../config/connect.php';
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../auth/login.php");
-    exit();
-}
 ?>
 <link rel="stylesheet" href="../assets/Css/dining.css">
 <div class="container">
