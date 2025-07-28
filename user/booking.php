@@ -117,22 +117,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
 // Handle booking cancellation
 if (isset($_GET['cancel_booking'])) {
     $cancel_id = intval($_GET['cancel_booking']);
-    // Delete payment
+
+    // Delete child records first to avoid ORA-02292
+    // 1. Delete booking_payments
     $sql = "DELETE FROM booking_payments WHERE booking_id = :bid";
     $stmt = oci_parse($connection, $sql);
     oci_bind_by_name($stmt, ':bid', $cancel_id);
     oci_execute($stmt);
-    // Delete guest
+
+    // 2. Delete guests
     $sql = "DELETE FROM guests WHERE booking_id = :bid";
     $stmt = oci_parse($connection, $sql);
     oci_bind_by_name($stmt, ':bid', $cancel_id);
     oci_execute($stmt);
-    // Delete booking
+
+    // 3. Delete any other child tables referencing bookings here if needed
+
+    // 4. Delete the booking itself
     $sql = "DELETE FROM bookings WHERE booking_id = :bid AND user_id = :uid";
     $stmt = oci_parse($connection, $sql);
     oci_bind_by_name($stmt, ':bid', $cancel_id);
     oci_bind_by_name($stmt, ':uid', $user_id);
     oci_execute($stmt);
+
     header("Location: booking.php?msg=cancelled");
     exit;
 }

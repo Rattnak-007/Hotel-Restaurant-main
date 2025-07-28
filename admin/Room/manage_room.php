@@ -1,10 +1,5 @@
 <?php
 require_once '../../config/connect.php';
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../auth/login.php");
-    exit();
-}
 // --- Fetch All Rooms ---
 $rooms = [];
 $sql = "SELECT * FROM rooms ORDER BY room_id DESC";

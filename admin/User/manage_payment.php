@@ -1,10 +1,5 @@
 <?php
 require_once '../../config/connect.php';
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../auth/login.php");
-    exit();
-}
 
 // Fetch room booking payments
 $sql_room_payments = "SELECT payment_id, booking_id, user_id, amount, method, status, payment_date, transaction_id FROM booking_payments ORDER BY payment_id DESC";

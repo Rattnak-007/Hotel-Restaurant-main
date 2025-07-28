@@ -1,11 +1,5 @@
 <?php
 require_once '../../config/connect.php';
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../auth/login.php");
-    exit();
-}
-
 // Fetch restaurant order items
 $sql_order_items = "SELECT 
     oi.order_item_id, oi.order_id, oi.menu_id, oi.quantity, oi.price,
