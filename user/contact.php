@@ -1,11 +1,12 @@
 <?php
-require_once("../include/Header.php");
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../auth/login.php");
     exit();
 }
+require_once '../config/connect.php';
 ?>
+<?php require_once("../include/Header.php"); ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -163,7 +164,6 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
         <?php
-        require_once("../config/connect.php");
         $msg = '';
         $name = $email = $phone = $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {

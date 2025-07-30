@@ -517,7 +517,9 @@ oci_close($connection);
                                 </td>
                                 <td><?= htmlspecialchars(date('Y-m-d', strtotime($user['CREATED_AT']))) ?></td>
                                 <td>
-                                    <?php if ($user['USER_ID'] != $_SESSION['user_id']): ?>
+                                    <?php
+                                    // Only show actions if session user is set and is admin
+                                    if (isset($_SESSION['admin_id']) && $_SESSION['admin_role'] === 'admin' && $user['USER_ID'] != $_SESSION['admin_id']): ?>
                                         <form method="POST" style="display:inline;">
                                             <input type="hidden" name="toggle_user_id" value="<?= $user['USER_ID'] ?>">
                                             <?php if (strtolower($user['STATUS']) === 'active'): ?>
@@ -549,6 +551,8 @@ oci_close($connection);
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </form>
+                                    <?php elseif (!isset($_SESSION['admin_id'])): ?>
+                                        <span class="text-muted">Session admin not set</span>
                                     <?php else: ?>
                                         <span class="text-muted">Current Admin</span>
                                     <?php endif; ?>

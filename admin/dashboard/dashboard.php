@@ -64,14 +64,15 @@ $recent_rooms = array_slice($rooms, 0, 5);
 $recent_orders = array_slice($orders, 0, 5);
 
 // Calculate total revenue from order_payments (restaurant) and booking_payments (rooms)
+// Only sum payments with status 'Paid' or 'Pending' for user payments
 $order_payments_sum = 0;
-$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE status = 'Paid'");
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE LOWER(status) IN ('paid','pending')");
 oci_execute($stmt);
 $row = oci_fetch_assoc($stmt);
 $order_payments_sum = $row['SUM_AMT'] ?? 0;
 
 $booking_payments_sum = 0;
-$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE status = 'Paid'");
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE LOWER(status) IN ('paid','pending')");
 oci_execute($stmt);
 $row = oci_fetch_assoc($stmt);
 $booking_payments_sum = $row['SUM_AMT'] ?? 0;
