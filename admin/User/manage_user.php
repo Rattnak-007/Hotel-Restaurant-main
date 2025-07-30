@@ -18,7 +18,9 @@ $activate_msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_user_id'])) {
     $toggle_user_id = intval($_POST['toggle_user_id']);
     $toggle_action = $_POST['toggle_action'];
-    if ($toggle_user_id == $_SESSION['user_id']) {
+    // Fix: Use admin session for user management, not user session
+    $current_user_id = isset($_SESSION['admin_id']) ? $_SESSION['admin_id'] : 0;
+    if ($toggle_user_id == $current_user_id) {
         $activate_msg = "You cannot change your own activation status.";
     } else {
         $new_status = ($toggle_action === 'activate') ? 'active' : 'inactive';
@@ -497,11 +499,11 @@ oci_close($connection);
                     <tbody>
                         <?php foreach ($users as $user): ?>
                             <tr>
-                                <td><?= htmlspecialchars($user['USER_ID']) ?></td>
-                                <td><?= htmlspecialchars($user['NAME']) ?></td>
-                                <td><?= htmlspecialchars($user['EMAIL']) ?></td>
+                                <td><?= isset($user['USER_ID']) ? htmlspecialchars($user['USER_ID']) : '' ?></td>
+                                <td><?= isset($user['NAME']) ? htmlspecialchars($user['NAME']) : '' ?></td>
+                                <td><?= isset($user['EMAIL']) ? htmlspecialchars($user['EMAIL']) : '' ?></td>
                                 <td>
-                                    <?= htmlspecialchars($user['ROLE']) ?>
+                                    <?= isset($user['ROLE']) ? htmlspecialchars($user['ROLE']) : '' ?>
                                     <?php if ($user['ROLE'] === 'admin'): ?>
                                         <span class="badge bg-warning text-dark ms-2">Admin</span>
                                     <?php else: ?>
@@ -515,7 +517,7 @@ oci_close($connection);
                                         <span class="badge bg-secondary">Inactive</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= htmlspecialchars(date('Y-m-d', strtotime($user['CREATED_AT']))) ?></td>
+                                <td><?= isset($user['CREATED_AT']) ? htmlspecialchars(date('Y-m-d', strtotime($user['CREATED_AT']))) : '' ?></td>
                                 <td>
                                     <?php
                                     // Only show actions if session user is set and is admin

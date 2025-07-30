@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = $_SESSION['user_id'];
 
-$room_id = $_GET['room_id'] ?? null;
+$room_id = isset($_GET['room_id']) ? $_GET['room_id'] : null;
 $booking_msg = '';
 $booking_id = null;
 

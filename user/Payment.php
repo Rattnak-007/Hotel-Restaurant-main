@@ -86,8 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cart_json'])) {
                     oci_bind_by_name($stmt_item, ':price', $item['price']);
                     oci_execute($stmt_item);
                 }
-                // Fix: Oracle bind variable names must not be substrings of each other (avoid :status and :stat)
-                // Use unique names for all binds
                 $sql_pay = "INSERT INTO order_payments (payment_id, order_id, user_id, amount, method, status, payment_date)
                             VALUES (order_payments_seq.NEXTVAL, :oid_pay, :uid_pay, :amt_pay, :method_pay, :status_pay, SYSDATE)";
                 $stmt_pay = oci_parse($connection, $sql_pay);
