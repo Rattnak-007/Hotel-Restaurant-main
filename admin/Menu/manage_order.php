@@ -454,17 +454,6 @@ while ($row = oci_fetch_assoc($stmt_bookings)) {
                     </div>
                 </div>
             </div>
-
-            <div class="search-filter">
-                <input type="text" class="search-box" placeholder="Search orders...">
-                <select class="filter-select">
-                    <option value="">All Statuses</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
-            </div>
-
             <div class="card">
                 <div class="card-header">
                     <span>Restaurant Order Items</span>

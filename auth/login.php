@@ -1,8 +1,6 @@
 <?php
 session_start();
 $connection = require_once '../config/connect.php';
-
-// Fix: Use separate session keys for admin and user, do not unset the other on login
 function set_user_session($user)
 {
     if (strtolower($user['ROLE']) === 'admin') {

@@ -455,8 +455,6 @@ while ($row = oci_fetch_assoc($stmt_order_payments)) {
                                 <th>Method</th>
                                 <th>Status</th>
                                 <th>Date</th>
-                                <th>Transaction ID</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -478,14 +476,6 @@ while ($row = oci_fetch_assoc($stmt_order_payments)) {
                                     </td>
                                     <td><?= htmlspecialchars(date('Y-m-d', strtotime($p['PAYMENT_DATE']))) ?></td>
                                     <td><?= htmlspecialchars($p['TRANSACTION_ID']) ?></td>
-                                    <td>
-                                        <a href="#" class="action-btn btn-view">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <a href="#" class="action-btn btn-edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -518,8 +508,6 @@ while ($row = oci_fetch_assoc($stmt_order_payments)) {
                                 <th>Method</th>
                                 <th>Status</th>
                                 <th>Date</th>
-                                <th>Transaction ID</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -541,14 +529,6 @@ while ($row = oci_fetch_assoc($stmt_order_payments)) {
                                     </td>
                                     <td><?= htmlspecialchars(date('Y-m-d', strtotime($p['PAYMENT_DATE']))) ?></td>
                                     <td><?= htmlspecialchars($p['TRANSACTION_ID']) ?></td>
-                                    <td>
-                                        <a href="#" class="action-btn btn-view">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <a href="#" class="action-btn btn-edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
