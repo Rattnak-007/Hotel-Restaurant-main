@@ -41,21 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_user_id'])) {
 $delete_msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
     $delete_user_id = intval($_POST['delete_user_id']);
-    if ($delete_user_id == $_SESSION['user_id']) {
+    // Fix: Use admin_id for self-check, not user_id
+    $current_admin_id = isset($_SESSION['admin_id']) ? $_SESSION['admin_id'] : 0;
+    if ($delete_user_id == $current_admin_id) {
         $delete_msg = "You cannot delete your own account.";
     } else {
         $error_occurred = false;
-
-        // Delete from child tables
         $tables = [
-            // Table => condition
             "booking_payments" => "user_id = :user_id",
             "order_payments" => "user_id = :user_id",
             "bookings" => "user_id = :user_id",
             "restaurant_orders" => "user_id = :user_id",
             "system_logs" => "user_id = :user_id"
         ];
-        // Use OCI_NO_AUTO_COMMIT for the first statement in the transaction
         $first = true;
         foreach ($tables as $table => $cond) {
             $sql_del = "DELETE FROM $table WHERE $cond";
@@ -69,8 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
             oci_free_statement($stmt_del);
             $first = false;
         }
-
-        // Now delete user if no error
         if (!$error_occurred) {
             $sql = "DELETE FROM users WHERE user_id = :user_id";
             $stmt = oci_parse($connection, $sql);
@@ -548,7 +544,7 @@ oci_close($connection);
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
                                         <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                            <input type="hidden" name="delete_user_id" value="<?= $user['USER_ID'] ?>">
+                                            <input type="hidden" name="delete_user_id" value="<?= htmlspecialchars($user['USER_ID']) ?>">
                                             <button type="submit" class="btn btn-danger btn-sm">
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
@@ -616,7 +612,7 @@ oci_close($connection);
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
                                 <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                    <input type="hidden" name="delete_user_id" value="<?= $user['USER_ID'] ?>">
+                                    <input type="hidden" name="delete_user_id" value="<?= htmlspecialchars($user['USER_ID']) ?>">
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>

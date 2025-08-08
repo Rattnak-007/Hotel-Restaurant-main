@@ -1,7 +1,7 @@
 <?php require_once("../include/Header.php");
 require_once '../config/connect.php';
 ?>
-<link rel="stylesheet" href="../assets/Css/dining.css">
+<link rel="stylesheet" href="../assets/Styles/dining.css">
 <div class="container">
     <section class="restaurant-banner">
         <div class="banner-image"></div>

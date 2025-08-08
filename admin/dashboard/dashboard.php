@@ -208,9 +208,6 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
             <div class="chart-container">
               <div class="chart-header">
                 <h3 class="chart-title">Revenue Overview (Total)</h3>
-                <div>
-                  <button class="btn btn-sm btn-outline-primary">View Report</button>
-                </div>
               </div>
               <canvas id="revenueChart"></canvas>
               <div style="margin-top:18px;font-size:1.2rem;color:#4361ee;">
