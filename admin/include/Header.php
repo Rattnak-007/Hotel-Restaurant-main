@@ -406,19 +406,19 @@
     </div>
   </div>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const menuToggle = document.querySelector('.menu-toggle');
       const sidebar = document.querySelector('.sidebar');
       const overlay = document.querySelector('.overlay');
 
       // Toggle sidebar on menu button click
-      menuToggle.addEventListener('click', function() {
+      menuToggle.addEventListener('click', function () {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
       });
 
       // Close sidebar when clicking on overlay
-      overlay.addEventListener('click', function() {
+      overlay.addEventListener('click', function () {
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
       });
@@ -426,7 +426,7 @@
       // Handle sidebar menu item clicks
       const navItems = document.querySelectorAll('.nav-item');
       navItems.forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function () {
           // Remove active class from all items
           navItems.forEach(i => i.classList.remove('active'));
           // Add active class to clicked item
@@ -441,7 +441,7 @@
       });
 
       // Close sidebar when window is resized above mobile breakpoint
-      window.addEventListener('resize', function() {
+      window.addEventListener('resize', function () {
         if (window.innerWidth >= 992) {
           sidebar.classList.remove('active');
           overlay.classList.remove('active');

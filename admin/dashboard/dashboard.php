@@ -20,38 +20,44 @@ require_once '../../config/connect.php';
 $room_stmt = oci_parse($connection, "SELECT room_id, room_name, price_per_night, status, sleeps FROM rooms ORDER BY room_id DESC");
 oci_execute($room_stmt);
 $rooms = [];
-while ($row = oci_fetch_assoc($room_stmt)) $rooms[] = $row;
+while ($row = oci_fetch_assoc($room_stmt))
+  $rooms[] = $row;
 
 // Fetch food menu
 $food_stmt = oci_parse($connection, "SELECT menu_id, name, price, category FROM restaurant_menu ORDER BY menu_id DESC");
 oci_execute($food_stmt);
 $foods = [];
-while ($row = oci_fetch_assoc($food_stmt)) $foods[] = $row;
+while ($row = oci_fetch_assoc($food_stmt))
+  $foods[] = $row;
 
 // Fetch booking payments
 $booking_payments = [];
 $bp_stmt = oci_parse($connection, "SELECT payment_id, user_id, amount, method, status, payment_date, transaction_id FROM booking_payments ORDER BY payment_id DESC");
 oci_execute($bp_stmt);
-while ($row = oci_fetch_assoc($bp_stmt)) $booking_payments[] = $row;
+while ($row = oci_fetch_assoc($bp_stmt))
+  $booking_payments[] = $row;
 
 // Fetch order payments
 $order_payments = [];
 $op_stmt = oci_parse($connection, "SELECT payment_id, user_id, amount, method, status, payment_date, transaction_id FROM order_payments ORDER BY payment_id DESC");
 oci_execute($op_stmt);
-while ($row = oci_fetch_assoc($op_stmt)) $order_payments[] = $row;
+while ($row = oci_fetch_assoc($op_stmt))
+  $order_payments[] = $row;
 
 // Fetch restaurant orders
 $orders = [];
 $order_stmt = oci_parse($connection, "SELECT order_id, user_id, total_amount, status, order_date FROM restaurant_orders ORDER BY order_id DESC");
 oci_execute($order_stmt);
 $orders = [];
-while ($row = oci_fetch_assoc($order_stmt)) $orders[] = $row;
+while ($row = oci_fetch_assoc($order_stmt))
+  $orders[] = $row;
 
 // Fetch users
 $user_stmt = oci_parse($connection, "SELECT user_id, name, email, role, status, created_at FROM users ORDER BY user_id DESC");
 oci_execute($user_stmt);
 $users = [];
-while ($row = oci_fetch_assoc($user_stmt)) $users[] = $row;
+while ($row = oci_fetch_assoc($user_stmt))
+  $users[] = $row;
 $user_count = count($users);
 
 // Get counts for dashboard cards
@@ -120,6 +126,194 @@ while ($row = oci_fetch_assoc($stmt)) {
 $topSellingItems = array_slice($top_room_items, 0, 5);
 $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0, 5));
 
+// --- AGGREGATE DATA FOR DASHBOARD ---
+
+// Helper date strings
+$today = date('Y-m-d');
+$this_month = date('Y-m');
+$this_year = date('Y');
+
+// Room Booking Payments
+// Daily
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE TRUNC(payment_date) = TO_DATE(:today, 'YYYY-MM-DD') AND LOWER(status) IN ('paid','pending')");
+oci_bind_by_name($stmt, ':today', $today);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$booking_payments_today = $row['SUM_AMT'] ?? 0;
+
+// Monthly
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE TO_CHAR(payment_date, 'YYYY-MM') = :month AND LOWER(status) IN ('paid','pending')");
+oci_bind_by_name($stmt, ':month', $this_month);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$booking_payments_month = $row['SUM_AMT'] ?? 0;
+
+// Annual
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE TO_CHAR(payment_date, 'YYYY') = :year AND LOWER(status) IN ('paid','pending')");
+oci_bind_by_name($stmt, ':year', $this_year);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$booking_payments_year = $row['SUM_AMT'] ?? 0;
+
+// Restaurant Order Payments
+// Daily
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE TRUNC(payment_date) = TO_DATE(:today, 'YYYY-MM-DD') AND LOWER(status) IN ('paid','pending')");
+oci_bind_by_name($stmt, ':today', $today);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$order_payments_today = $row['SUM_AMT'] ?? 0;
+
+// Monthly
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE TO_CHAR(payment_date, 'YYYY-MM') = :month AND LOWER(status) IN ('paid','pending')");
+oci_bind_by_name($stmt, ':month', $this_month);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$order_payments_month = $row['SUM_AMT'] ?? 0;
+
+// Annual
+$stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE TO_CHAR(payment_date, 'YYYY') = :year AND LOWER(status) IN ('paid','pending')");
+oci_bind_by_name($stmt, ':year', $this_year);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$order_payments_year = $row['SUM_AMT'] ?? 0;
+
+// Total aggregates
+$revenue_today = $booking_payments_today + $order_payments_today;
+$revenue_month = $booking_payments_month + $order_payments_month;
+$revenue_year = $booking_payments_year + $order_payments_year;
+
+// Bookings count
+$stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM bookings WHERE TRUNC(created_at) = TO_DATE(:today, 'YYYY-MM-DD')");
+oci_bind_by_name($stmt, ':today', $today);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$bookings_today = $row['CNT'] ?? 0;
+
+$stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM bookings WHERE TO_CHAR(created_at, 'YYYY-MM') = :month");
+oci_bind_by_name($stmt, ':month', $this_month);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$bookings_month = $row['CNT'] ?? 0;
+
+$stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM bookings WHERE TO_CHAR(created_at, 'YYYY') = :year");
+oci_bind_by_name($stmt, ':year', $this_year);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$bookings_year = $row['CNT'] ?? 0;
+
+// Orders count
+$stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TRUNC(order_date) = TO_DATE(:today, 'YYYY-MM-DD')");
+oci_bind_by_name($stmt, ':today', $today);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$orders_today = $row['CNT'] ?? 0;
+
+$stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TO_CHAR(order_date, 'YYYY-MM') = :month");
+oci_bind_by_name($stmt, ':month', $this_month);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$orders_month = $row['CNT'] ?? 0;
+
+$stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TO_CHAR(order_date, 'YYYY') = :year");
+oci_bind_by_name($stmt, ':year', $this_year);
+oci_execute($stmt);
+$row = oci_fetch_assoc($stmt);
+$orders_year = $row['CNT'] ?? 0;
+
+// --- FILTER LOGIC ---
+$filter_type = $_GET['filter_type'] ?? 'day'; // 'day', 'month', 'year'
+$filter_date = $_GET['filter_date'] ?? date('Y-m-d');
+$filter_month = $_GET['filter_month'] ?? date('Y-m');
+$filter_year = $_GET['filter_year'] ?? date('Y');
+
+// --- AGGREGATE DATA FOR DASHBOARD FILTERED ---
+
+if ($filter_type === 'day') {
+  // Daily
+  $stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE TRUNC(payment_date) = TO_DATE(:today, 'YYYY-MM-DD') AND LOWER(status) IN ('paid','pending')");
+  oci_bind_by_name($stmt, ':today', $filter_date);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $booking_payments_filtered = $row['SUM_AMT'] ?? 0;
+
+  $stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE TRUNC(payment_date) = TO_DATE(:today, 'YYYY-MM-DD') AND LOWER(status) IN ('paid','pending')");
+  oci_bind_by_name($stmt, ':today', $filter_date);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $order_payments_filtered = $row['SUM_AMT'] ?? 0;
+
+  $revenue_filtered = $booking_payments_filtered + $order_payments_filtered;
+
+  $stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM bookings WHERE TRUNC(created_at) = TO_DATE(:today, 'YYYY-MM-DD')");
+  oci_bind_by_name($stmt, ':today', $filter_date);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $bookings_filtered = $row['CNT'] ?? 0;
+
+  $stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TRUNC(order_date) = TO_DATE(:today, 'YYYY-MM-DD')");
+  oci_bind_by_name($stmt, ':today', $filter_date);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $orders_filtered = $row['CNT'] ?? 0;
+  $filter_label = date('M d, Y', strtotime($filter_date));
+} elseif ($filter_type === 'month') {
+  // Monthly
+  $stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE TO_CHAR(payment_date, 'YYYY-MM') = :month AND LOWER(status) IN ('paid','pending')");
+  oci_bind_by_name($stmt, ':month', $filter_month);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $booking_payments_filtered = $row['SUM_AMT'] ?? 0;
+
+  $stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE TO_CHAR(payment_date, 'YYYY-MM') = :month AND LOWER(status) IN ('paid','pending')");
+  oci_bind_by_name($stmt, ':month', $filter_month);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $order_payments_filtered = $row['SUM_AMT'] ?? 0;
+
+  $revenue_filtered = $booking_payments_filtered + $order_payments_filtered;
+
+  $stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM bookings WHERE TO_CHAR(created_at, 'YYYY-MM') = :month");
+  oci_bind_by_name($stmt, ':month', $filter_month);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $bookings_filtered = $row['CNT'] ?? 0;
+
+  $stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TO_CHAR(order_date, 'YYYY-MM') = :month");
+  oci_bind_by_name($stmt, ':month', $filter_month);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $orders_filtered = $row['CNT'] ?? 0;
+  $filter_label = date('F Y', strtotime($filter_month . '-01'));
+} else {
+  // Annual
+  $stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM booking_payments WHERE TO_CHAR(payment_date, 'YYYY') = :year AND LOWER(status) IN ('paid','pending')");
+  oci_bind_by_name($stmt, ':year', $filter_year);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $booking_payments_filtered = $row['SUM_AMT'] ?? 0;
+
+  $stmt = oci_parse($connection, "SELECT NVL(SUM(amount),0) AS SUM_AMT FROM order_payments WHERE TO_CHAR(payment_date, 'YYYY') = :year AND LOWER(status) IN ('paid','pending')");
+  oci_bind_by_name($stmt, ':year', $filter_year);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $order_payments_filtered = $row['SUM_AMT'] ?? 0;
+
+  $revenue_filtered = $booking_payments_filtered + $order_payments_filtered;
+
+  $stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM bookings WHERE TO_CHAR(created_at, 'YYYY') = :year");
+  oci_bind_by_name($stmt, ':year', $filter_year);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $bookings_filtered = $row['CNT'] ?? 0;
+
+  $stmt = oci_parse($connection, "SELECT COUNT(*) AS CNT FROM restaurant_orders WHERE TO_CHAR(order_date, 'YYYY') = :year");
+  oci_bind_by_name($stmt, ':year', $filter_year);
+  oci_execute($stmt);
+  $row = oci_fetch_assoc($stmt);
+  $orders_filtered = $row['CNT'] ?? 0;
+  $filter_label = $filter_year;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -144,8 +338,36 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
         <h1 class="dashboard-title">Sales Analytics Dashboard</h1>
         <p class="dashboard-subtitle">Unlock insights, boost revenue, and drive business growth</p>
       </div>
-
-      <!-- Summary Cards -->
+      <!-- Filter Controls -->
+      <form method="get" style="margin-bottom:30px;display:flex;gap:18px;align-items:center;">
+        <label for="filter_type" style="font-weight:600;">Filter:</label>
+        <select name="filter_type" id="filter_type" onchange="toggleFilterInputs()"
+          style="padding:8px 12px;border-radius:8px;">
+          <option value="day" <?= $filter_type === 'day' ? 'selected' : '' ?>>Daily</option>
+          <option value="month" <?= $filter_type === 'month' ? 'selected' : '' ?>>Monthly</option>
+          <option value="year" <?= $filter_type === 'year' ? 'selected' : '' ?>>Annual</option>
+        </select>
+        <input type="date" name="filter_date" id="filter_date" value="<?= htmlspecialchars($filter_date) ?>"
+          style="padding:8px 12px;border-radius:8px;<?= $filter_type !== 'day' ? 'display:none;' : '' ?>">
+        <input type="month" name="filter_month" id="filter_month" value="<?= htmlspecialchars($filter_month) ?>"
+          style="padding:8px 12px;border-radius:8px;<?= $filter_type !== 'month' ? 'display:none;' : '' ?>">
+        <input type="number" name="filter_year" id="filter_year" min="2000" max="<?= date('Y') ?>"
+          value="<?= htmlspecialchars($filter_year) ?>"
+          style="padding:8px 12px;border-radius:8px;width:100px;<?= $filter_type !== 'year' ? 'display:none;' : '' ?>">
+        <button type="submit" class="btn btn-outline-primary" style="padding:8px 18px;border-radius:8px;">Apply</button>
+        <span style="margin-left:18px;font-weight:500;color:#4361ee;">Showing:
+          <?= htmlspecialchars($filter_label) ?></span>
+      </form>
+      <script>
+        function toggleFilterInputs() {
+          var type = document.getElementById('filter_type').value;
+          document.getElementById('filter_date').style.display = (type === 'day') ? '' : 'none';
+          document.getElementById('filter_month').style.display = (type === 'month') ? '' : 'none';
+          document.getElementById('filter_year').style.display = (type === 'year') ? '' : 'none';
+        }
+        document.addEventListener('DOMContentLoaded', toggleFilterInputs);
+      </script>
+      <!-- Summary Cards with Filtered Aggregates -->
       <div class="dashboard-cards">
         <div class="card">
           <div class="card-body">
@@ -154,11 +376,8 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
                 <i class="fas fa-chart-line"></i>
               </div>
               <div class="stat-content">
-                <div class="stat-number">$<?= number_format($total_revenue_potential, 2) ?></div>
-                <div class="stat-title">Total Revenue Potential</div>
-                <div class="trend-indicator trend-up">
-                  <i class="fas fa-arrow-up"></i> 12.5% from last month
-                </div>
+                <div class="stat-number">$<?= number_format($revenue_filtered, 2) ?></div>
+                <div class="stat-title">Revenue (<?= htmlspecialchars($filter_label) ?>)</div>
               </div>
             </div>
           </div>
@@ -170,11 +389,21 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
                 <i class="fas fa-bed"></i>
               </div>
               <div class="stat-content">
-                <div class="stat-number"><?= $room_count ?></div>
-                <div class="stat-title">Available Rooms</div>
-                <div class="trend-indicator trend-up">
-                  <i class="fas fa-arrow-up"></i> 5.2% occupancy increase
-                </div>
+                <div class="stat-number"><?= $bookings_filtered ?></div>
+                <div class="stat-title">Bookings (<?= htmlspecialchars($filter_label) ?>)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="stat-card">
+              <div class="stat-icon bg-orders">
+                <i class="fas fa-utensils"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number"><?= $orders_filtered ?></div>
+                <div class="stat-title">Orders (<?= htmlspecialchars($filter_label) ?>)</div>
               </div>
             </div>
           </div>
@@ -188,9 +417,6 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
               <div class="stat-content">
                 <div class="stat-number"><?= $user_count ?></div>
                 <div class="stat-title">Registered Users</div>
-                <div class="trend-indicator trend-up">
-                  <i class="fas fa-arrow-up"></i> 15.7% from last quarter
-                </div>
               </div>
             </div>
           </div>
@@ -288,7 +514,8 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
                         <td>$<?= number_format($p['AMOUNT'], 2) ?></td>
                         <td><?= htmlspecialchars($p['METHOD']) ?></td>
                         <td>
-                          <span class="status-badge <?= strtolower($p['STATUS']) == 'paid' ? 'status-active' : (strtolower($p['STATUS']) == 'pending' ? 'status-pending' : 'status-inactive') ?>">
+                          <span
+                            class="status-badge <?= strtolower($p['STATUS']) == 'paid' ? 'status-active' : (strtolower($p['STATUS']) == 'pending' ? 'status-pending' : 'status-inactive') ?>">
                             <?= htmlspecialchars($p['STATUS']) ?>
                           </span>
                         </td>
@@ -327,7 +554,8 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
                         <td>$<?= number_format($p['AMOUNT'], 2) ?></td>
                         <td><?= htmlspecialchars($p['METHOD']) ?></td>
                         <td>
-                          <span class="status-badge <?= strtolower($p['STATUS']) == 'paid' ? 'status-active' : (strtolower($p['STATUS']) == 'pending' ? 'status-pending' : 'status-inactive') ?>">
+                          <span
+                            class="status-badge <?= strtolower($p['STATUS']) == 'paid' ? 'status-active' : (strtolower($p['STATUS']) == 'pending' ? 'status-pending' : 'status-inactive') ?>">
                             <?= htmlspecialchars($p['STATUS']) ?>
                           </span>
                         </td>
@@ -393,7 +621,7 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
         </div>
       </div>
       <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
           // === Revenue Chart (single bar) ===
           const revenueCtx = document.getElementById('revenueChart').getContext('2d');
           new Chart(revenueCtx, {
@@ -421,7 +649,7 @@ $topSellingItems = array_merge($topSellingItems, array_slice($top_food_items, 0,
                     color: 'rgba(0, 0, 0, 0.05)'
                   },
                   ticks: {
-                    callback: function(value) {
+                    callback: function (value) {
                       return '$' + value;
                     }
                   }

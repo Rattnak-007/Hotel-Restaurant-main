@@ -9,6 +9,7 @@ require_once("../../config/connect.php");
         --secondary: #3498db;
         --accent: #e74c3c;
         --success: #27ae60;
+        --warning: #f39c12;
         --light: #ecf0f1;
         --dark: #2c3e50;
         --gray: #7f8c8d;
@@ -18,25 +19,25 @@ require_once("../../config/connect.php");
     }
 
     body {
-        font-family: 'Arial', sans-serif;
-        background: #f4f7fa;
-        color: #333;
-        margin: 0;
-        padding: 0;
+        background-color: #f5f7fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--dark);
+        line-height: 1.6;
     }
 
     .content {
-        margin-left: 260px;
+        margin-left: 240px;
         padding: 30px;
         transition: all 0.3s ease;
+        box-sizing: border-box;
     }
 
     .contact-table-container {
         background: #fff;
         border-radius: 16px;
         box-shadow: var(--card-shadow);
-        overflow-x: auto;
-        margin-bottom: 40px;
+        overflow: hidden;
+        margin-bottom: 50px;
         transition: box-shadow 0.3s;
     }
 
@@ -68,15 +69,19 @@ require_once("../../config/connect.php");
         justify-content: center;
     }
 
+    .table-responsive {
+        overflow-x: auto;
+        width: 100%;
+    }
+
     .contact-table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
+        border-collapse: collapse;
         min-width: 900px;
     }
 
     .contact-table th {
-        padding: 16px 18px;
+        padding: 18px 20px;
         text-align: left;
         font-weight: 600;
         color: var(--primary);
@@ -89,7 +94,7 @@ require_once("../../config/connect.php");
     }
 
     .contact-table td {
-        padding: 16px 18px;
+        padding: 18px 20px;
         border-bottom: 1px solid var(--light-gray);
         font-size: 0.98rem;
         vertical-align: top;
@@ -128,7 +133,7 @@ require_once("../../config/connect.php");
     .user-info {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 5px;
     }
 
     .user-name {
@@ -183,95 +188,200 @@ require_once("../../config/connect.php");
         display: inline-block;
         min-width: 80px;
         text-align: center;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    }
+
+    .status-new {
         background: rgba(46, 204, 113, 0.15);
         color: #27ae60;
         border: 1px solid rgba(46, 204, 113, 0.25);
-        box-shadow: 0 1px 4px rgba(46, 204, 113, 0.07);
+    }
+
+    .status-read {
+        background: rgba(149, 165, 166, 0.15);
+        color: #7f8c8d;
+        border: 1px solid rgba(149, 165, 166, 0.25);
+    }
+
+    .status-replied {
+        background: rgba(52, 152, 219, 0.15);
+        color: #2980b9;
+        border: 1px solid rgba(52, 152, 219, 0.25);
+    }
+
+    .status-urgent {
+        background: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.25);
+    }
+
+    /* Column width adjustments */
+    .contact-table th:nth-child(1),
+    .contact-table td:nth-child(1) {
+        width: 20%;
+    }
+
+    .contact-table th:nth-child(2),
+    .contact-table td:nth-child(2) {
+        width: 15%;
+    }
+
+    .contact-table th:nth-child(3),
+    .contact-table td:nth-child(3) {
+        width: 35%;
+    }
+
+    .contact-table th:nth-child(4),
+    .contact-table td:nth-child(4) {
+        width: 15%;
+    }
+
+    .contact-table th:nth-child(5),
+    .contact-table td:nth-child(5) {
+        width: 15%;
     }
 
     @media (max-width: 1200px) {
         .content {
             padding: 20px;
+            margin-left: 0;
         }
 
         .contact-table th,
         .contact-table td {
-            padding: 12px 10px;
+            padding: 14px 16px;
         }
 
         .contact-table {
-            min-width: 700px;
+            min-width: 800px;
+        }
+
+        .message-cell {
+            max-width: 300px;
         }
     }
 
     @media (max-width: 992px) {
         .content {
-            margin-left: 0;
-            padding: 12px;
+            padding: 15px;
         }
 
         .contact-title {
-            font-size: 1.3rem;
-            padding: 15px 10px;
+            font-size: 1.5rem;
+            padding: 20px;
         }
 
-        .contact-table-container {
-            border-radius: 10px;
+        .contact-table th,
+        .contact-table td {
+            padding: 12px 14px;
         }
 
         .contact-table {
-            min-width: 600px;
+            min-width: 700px;
+        }
+
+        .message-cell {
+            max-width: 250px;
         }
     }
 
     @media (max-width: 768px) {
         .content {
-            padding: 7px;
+            padding: 10px;
         }
 
         .contact-title {
-            font-size: 1.1rem;
-            padding: 10px 5px;
+            font-size: 1.3rem;
+            padding: 15px;
         }
 
         .contact-title i {
-            width: 32px;
-            height: 32px;
-            font-size: 1rem;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
         }
 
-        .user-name,
-        .user-email,
-        .user-phone {
+        .contact-table th,
+        .contact-table td {
+            padding: 10px 12px;
             font-size: 0.9rem;
         }
 
+        .contact-table {
+            min-width: 600px;
+        }
+
+        .user-name {
+            font-size: 0.95rem;
+        }
+
+        .user-email,
+        .user-phone {
+            font-size: 0.85rem;
+        }
+
         .message-cell {
-            font-size: 0.92rem;
+            max-width: 200px;
+            font-size: 0.9rem;
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            font-size: 0.8rem;
+            min-width: 70px;
+            padding: 5px 10px;
         }
     }
 
     @media (max-width: 576px) {
         .contact-title {
+            font-size: 1.1rem;
+            flex-direction: row;
+            text-align: left;
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .contact-title i {
+            width: 35px;
+            height: 35px;
             font-size: 1rem;
-            flex-direction: column;
-            text-align: center;
-            gap: 7px;
         }
 
         .no-messages {
-            padding: 20px 5px;
+            padding: 30px 15px;
         }
 
         .no-messages i {
-            font-size: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .no-messages h3 {
+            font-size: 1.1rem;
+        }
+
+        .no-messages p {
+            font-size: 0.9rem;
         }
 
         .contact-table {
-            min-width: 400px;
+            min-width: 500px;
+        }
+
+        .contact-table th,
+        .contact-table td {
+            padding: 8px 10px;
+        }
+
+        .message-cell {
+            max-width: 150px;
         }
     }
 </style>
+
 <div class="dashboard-container">
     <?php require_once("../include/Header.php"); ?>
     <div class="content">
@@ -303,7 +413,7 @@ require_once("../../config/connect.php");
                         if (is_object($row['MESSAGE']) && method_exists($row['MESSAGE'], 'load')) {
                             $messageText = $row['MESSAGE']->load();
                         } else {
-                            $messageText = (string)$row['MESSAGE'];
+                            $messageText = (string) $row['MESSAGE'];
                         }
                         $status = htmlspecialchars($row['STATUS'] ?? 'New');
                         echo "<tr>

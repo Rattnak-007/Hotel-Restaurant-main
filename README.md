@@ -1,19 +1,26 @@
 # RoyalNest Hotel & Restaurant Management System
 
+![RoyalNest Dashboard Screenshot](assets/img/dashboard-screenshot.png)
+![RoyalNest Home Screenshot](assets/img/home-screenshot.png)
+
 Welcome to the RoyalNest Hotel & Restaurant Management System! This web application provides a complete solution for managing hotel rooms, restaurant menus, bookings, and administrative tasks for luxury resorts.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Technologies Used](#technologies-used)
-- [Folder Structure](#folder-structure)
-- [Contributing](#contributing)
-- [License](#license)
+- [RoyalNest Hotel \& Restaurant Management System](#royalnest-hotel--restaurant-management-system)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Features](#features)
+  - [Screenshots](#screenshots)
+    - [Dashboard](#dashboard)
+    - [Home Page](#home-page)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Usage](#usage)
+  - [Technologies Used](#technologies-used)
+  - [Folder Structure](#folder-structure)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Overview
 
@@ -22,14 +29,12 @@ RoyalNest is designed for both guests and administrators. Guests can browse room
 ## Features
 
 - **User Portal**
-
   - Browse and filter luxury rooms and suites
   - View detailed room information and amenities
   - Make reservations and manage bookings
   - Explore restaurant menu and order food
 
 - **Admin Dashboard**
-
   - Add, edit, and delete rooms and food items
   - Upload images for rooms and menu items
   - View statistics (available/booked/maintenance rooms)
@@ -42,7 +47,15 @@ RoyalNest is designed for both guests and administrators. Guests can browse room
 
 ## Screenshots
 
-> _Add screenshots of the dashboard, room listings, and menu management here._
+### Dashboard
+
+![Dashboard](assets/img/dashboard-screenshot.png)
+
+### Home Page
+
+![Home Page](assets/img/home-screenshot.png)
+
+> _Add more screenshots of the dashboard, room listings, and menu management here._
 
 ## Installation
 

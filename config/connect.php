@@ -4,7 +4,7 @@ if (!extension_loaded('oci8')) {
 }
 
 $host = 'localhost';
-$port = '1521'; // Fixed typo here
+$port = '1521';
 $service_name = 'XE';
 $username = 'RoyalNestdb';
 $password = 'E12345e';
